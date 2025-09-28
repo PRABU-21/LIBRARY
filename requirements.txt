@@ -2,3 +2,8 @@ frontend
 
 tailwindcss
 react-router-dom
+
+
+backend (node)
+
+cors

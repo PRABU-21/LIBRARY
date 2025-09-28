@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -11,10 +12,16 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("http://localhost:5000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -22,10 +29,10 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/library"); // ✅ redirect after login
+        // ✅ redirect to login page after signup
+        navigate("/login");
       } else {
-        setError(data.msg || "Login failed");
+        setError(data.msg || "Signup failed");
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -38,7 +45,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-sm">
         <h1 className="text-2xl font-bold text-center text-amber-800 mb-6">
-          Login to My Library
+          Create an Account
         </h1>
 
         {error && (
@@ -62,6 +69,14 @@ export default function LoginPage() {
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
             required
           />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+            required
+          />
           <button
             type="submit"
             disabled={loading}
@@ -71,14 +86,14 @@ export default function LoginPage() {
                 : "bg-amber-700 hover:bg-amber-800 text-white"
             }`}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 
         <p className="text-sm text-center text-gray-600 mt-4">
-          Don’t have an account?{" "}
-          <a href="/signup" className="text-amber-700 hover:underline">
-            Sign up
+          Already have an account?{" "}
+          <a href="/login" className="text-amber-700 hover:underline">
+            Log in
           </a>
         </p>
       </div>
