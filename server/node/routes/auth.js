@@ -1,10 +1,12 @@
 import bcrypt from "bcryptjs";
 import express from "express";
+import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import authMiddleware from "../middleware/authMiddleware.js";
 import User from "../models/User.js";
 
 const router = express.Router();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ✅ Signup
 router.post("/signup", async (req, res) => {
@@ -42,14 +44,53 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar },
     });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 });
 
-// ✅ Get current logged-in user
+// ✅ Google Login
+router.post("/google", async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub, email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        name,
+        email,
+        googleId: sub,
+        avatar: picture,
+      });
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({
+      token: jwtToken,
+      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ msg: "Invalid Google token" });
+  }
+});
+
+// ✅ Get current user
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");

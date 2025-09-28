@@ -1,3 +1,4 @@
+import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -24,6 +25,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
         navigate("/library");
       } else {
         setError(data.msg || "Login failed");
@@ -76,10 +78,30 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Sign Up Redirect */}
-        <p className="text-sm text-center text-gray-600 mt-4">
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              const res = await fetch("http://localhost:5000/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: credentialResponse.credential }),
+              });
+              const data = await res.json();
+              if (res.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                navigate("/library");
+              }
+            }}
+            onError={() => {
+              setError("Google Sign In failed");
+            }}
+          />
+        </div>
+
+        <p className="mt-4 text-center text-sm">
           Don’t have an account?{" "}
-          <Link to="/signup" className="text-amber-700 hover:underline">
+          <Link to="/signup" className="text-amber-700 font-semibold">
             Sign up
           </Link>
         </p>

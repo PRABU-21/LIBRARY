@@ -1,3 +1,4 @@
+import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -5,40 +6,30 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match!");
-      return;
-    }
-
-    setLoading(true);
-
     try {
       const res = await fetch("http://localhost:5000/api/auth/signup", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ name, email, password }),
-});
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
       const data = await res.json();
+
       if (res.ok) {
-        navigate("/login");
+        alert("Signup successful! Please login.");
+        navigate("/");
       } else {
         setError(data.msg || "Signup failed");
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -46,7 +37,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-sm">
         <h1 className="text-2xl font-bold text-center text-amber-800 mb-6">
-          Create an Account
+          Sign up for My Library
         </h1>
 
         {error && (
@@ -78,32 +69,39 @@ export default function SignupPage() {
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
             required
           />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-            required
-          />
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full py-3 rounded-lg shadow transition ${
-              loading
-                ? "bg-amber-400 cursor-not-allowed"
-                : "bg-amber-700 hover:bg-amber-800 text-white"
-            }`}
+            className="w-full py-3 bg-amber-700 text-white rounded-lg shadow hover:bg-amber-800 transition"
           >
-            {loading ? "Signing up..." : "Sign Up"}
+            Sign Up
           </button>
         </form>
 
-        {/* Login Redirect */}
-        <p className="text-sm text-center text-gray-600 mt-4">
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              const res = await fetch("http://localhost:5000/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: credentialResponse.credential }),
+              });
+              const data = await res.json();
+              if (res.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                navigate("/library");
+              }
+            }}
+            onError={() => {
+              setError("Google Sign Up failed");
+            }}
+          />
+        </div>
+
+        <p className="mt-4 text-center text-sm">
           Already have an account?{" "}
-          <Link to="/login" className="text-amber-700 hover:underline">
-            Log in
+          <Link to="/" className="text-amber-700 font-semibold">
+            Login
           </Link>
         </p>
       </div>

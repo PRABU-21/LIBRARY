@@ -2,8 +2,12 @@ frontend
 
 tailwindcss
 react-router-dom
+@react-oauth/google
 
 
 backend (node)
 
 cors
+passport
+passport-google-oauth20
+google-auth-library
