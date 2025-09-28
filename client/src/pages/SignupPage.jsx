@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignupPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,14 +23,14 @@ export default function SignupPage() {
 
     try {
       const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name, email, password }),
+});
+
 
       const data = await res.json();
       if (res.ok) {
-        // ✅ redirect to login page after signup
         navigate("/login");
       } else {
         setError(data.msg || "Signup failed");
@@ -53,6 +54,14 @@ export default function SignupPage() {
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+            required
+          />
           <input
             type="email"
             placeholder="Email"
@@ -90,11 +99,12 @@ export default function SignupPage() {
           </button>
         </form>
 
+        {/* Login Redirect */}
         <p className="text-sm text-center text-gray-600 mt-4">
           Already have an account?{" "}
-          <a href="/login" className="text-amber-700 hover:underline">
+          <Link to="/login" className="text-amber-700 hover:underline">
             Log in
-          </a>
+          </Link>
         </p>
       </div>
     </div>

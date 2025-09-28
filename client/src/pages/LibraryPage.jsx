@@ -1,15 +1,40 @@
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
 
 export default function LibraryPage() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch("http://localhost:5000/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-amber-50">
-      <Navbar />
-      <div className="flex flex-col items-center justify-center py-20">
-        <h1 className="text-4xl font-bold text-amber-800">📚 My Library</h1>
-        <p className="mt-4 text-gray-600">
-          This is where your personal library manager will live.
-        </p>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-amber-50">
+      {user ? (
+        <>
+          <h1 className="text-3xl font-bold text-amber-800">
+            📚 Welcome, {user.name}!
+          </h1>
+          <p className="mt-2 text-gray-600">Manage your books with ease.</p>
+        </>
+      ) : (
+        <p className="text-gray-600">Loading your library...</p>
+      )}
     </div>
   );
 }

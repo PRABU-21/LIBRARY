@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,9 +21,10 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+
       if (res.ok) {
         localStorage.setItem("token", data.token);
-        navigate("/library"); // ✅ redirect after login
+        navigate("/library");
       } else {
         setError(data.msg || "Login failed");
       }
@@ -75,11 +76,12 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* Sign Up Redirect */}
         <p className="text-sm text-center text-gray-600 mt-4">
           Don’t have an account?{" "}
-          <a href="/signup" className="text-amber-700 hover:underline">
+          <Link to="/signup" className="text-amber-700 hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>
